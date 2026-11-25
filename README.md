@@ -1,6 +1,6 @@
-# Boostly
+# LumaSMM
 
-Boostly is an engagement scheduling platform that delivers views and engagement in natural, time-paced runs following configurable growth curves.
+LumaSMM is a modern social media marketing (SMM) panel for ordering and managing growth services across Instagram, YouTube, TikTok, Telegram and more.
 
 ## Features
 
@@ -16,14 +16,14 @@ Boostly is an engagement scheduling platform that delivers views and engagement 
 ## Tech stack
 
 - **Frontend:** React, TypeScript, Vite, Tailwind CSS
-- **Backend:** Node.js, Express, PostgreSQL, background workers (PM2)
+- **Backend:** PostgreSQL, PostgREST, GoTrue auth, Deno edge functions (Docker Compose)
 - **Hosting:** Nginx reverse proxy behind Cloudflare
 
 ## Project structure
 
 ```text
-frontend/   React web application
-server/     API server and dispatch workers
+frontend/   React web application (panel + admin)
+backend/    Docker Compose services, database schema and edge functions
 README.md
 ```
 
