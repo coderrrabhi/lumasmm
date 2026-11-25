@@ -1,0 +1,127 @@
+/* Luma-only presentation. Legacy VPS Tailwind v3 expects HSL channel tokens. */
+:root {
+ --luma-red: 269 78% 44%; --luma-red-deep: 269 74% 34%; --luma-red-soft: 268 72% 96%;
+ --luma-bright: 269 78% 44%; --luma-ink: 240 24% 13%; --luma-copy: 240 10% 38%; --luma-line: 252 25% 87%;
+ --luma-panel: 260 38% 98%; --luma-workspace-tint: 260 38% 96%;
+ --luma-shadow: none; --luma-workspace-shadow: none;
+ --luma-action: linear-gradient(hsl(var(--luma-red)),hsl(var(--luma-red)));
+ --background: var(--luma-panel); --foreground: var(--luma-ink); --card: 0 0% 100%; --card-foreground: var(--luma-ink);
+ --primary:var(--luma-red); --primary-foreground:0 0% 100%; --secondary:var(--luma-red-soft); --secondary-foreground:var(--luma-ink);
+ --muted:var(--luma-workspace-tint); --muted-foreground:var(--luma-copy); --popover:0 0% 100%; --popover-foreground:var(--luma-ink);
+ --border:var(--luma-line); --input:var(--luma-line); --ring:var(--luma-red); --accent:var(--luma-red-soft); --accent-foreground:var(--luma-red);
+ --luma-type: 'Manrope','Segoe UI',Arial,sans-serif;
+}
+html body *, html body *::before, html body *::after,
+html body [class], html body [class]::before, html body [class]::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; }
+body,button,input,textarea,select { font-family:var(--luma-type) !important; letter-spacing:0 !important; }
+html body [class*="hover:scale"],html body [class*="hover:-translate"],html body .member-bottom-nav-item * { transform:none !important; }
+html body .member-shell,html body .member-auth {font-family:var(--luma-type);}
+html body .member-page :is(h1,h2,h3,h4),html body .member-auth-card h1 {font-family:var(--luma-type) !important;font-weight:700 !important;line-height:1.4;}
+html body .member-page h1 {font-size:26px;}
+html body .member-page p {line-height:1.6;}
+html body .member-page :is(input,textarea,[role="combobox"]) {font-size:14px;min-height:44px;background:hsl(var(--card)) !important;}
+html body :is(button,a,input,textarea,[role="combobox"]):focus-visible {outline:2px solid hsl(var(--ring));outline-offset:3px;}
+html body .member-page :is(.glass-card,.glass-panel,.three-d-card,[class*="bg-card"]) {box-shadow:none !important;backdrop-filter:none !important;}
+html body .member-page [class*="blur-"] {display:none;}
+/* Support remains in the sidebar and menu instead of covering form controls. */
+html body:has(.member-shell) [data-live-chat-trigger] {display:none;}
+html body .member-page label {font-size:13px;line-height:1.5;}
+html body .member-page :is(button,a)[class*="bg-gradient"] {background:hsl(var(--primary)) !important;color:hsl(var(--primary-foreground)) !important;}
+html body .member-page [class*="bg-clip-text"] {background:none !important;color:hsl(var(--primary)) !important;-webkit-text-fill-color:currentColor;}
+.luma-desktop-sidebar {display:none;position:fixed;inset:0 auto 0 0;width:252px;z-index:40;}
+html body .luma-page-gutter {padding:80px 16px 24px;}
+html body .member-page {max-width:1440px;width:100%;min-width:0;}
+html body .luma-desktop-masthead {gap:14px;height:64px;padding:0 24px;}
+.luma-top-account {display:flex;align-items:center;gap:10px;margin-left:auto;font-size:13px;font-weight:600;min-width:0;}
+.luma-top-account > span:not(.luma-avatar) {max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.luma-breadcrumb {display:flex;align-items:center;gap:8px;font-size:13px;color:hsl(var(--muted-foreground));}
+.luma-breadcrumb span {color:hsl(var(--foreground));font-weight:600;}
+html body .luma-sidebar-brand {height:64px;padding:0 16px;}
+html body .luma-sidebar-account {padding:14px 14px 4px;}
+html body .luma-sidebar-person {padding-bottom:12px;}
+html body .luma-person-email {font-size:12px;}
+html body .luma-sidebar-wallet {background:hsl(var(--primary));color:hsl(var(--primary-foreground));padding:14px;}
+html body .luma-wallet-caption,html body .luma-wallet-currency {color:hsl(var(--primary-foreground));font-size:12px;}
+html body .luma-sidebar-wallet button {background:hsl(var(--card));color:hsl(var(--primary));}
+html body .luma-sidebar nav .luma-sidebar-link {height:auto;min-height:42px;font-size:13px;padding:9px 10px;line-height:1.4;white-space:normal;}
+html body .luma-sidebar nav .luma-sidebar-link span:not(.luma-active-mark) {text-align:left;min-width:0;overflow-wrap:anywhere;}
+html body .luma-nav-caption {font-size:12px;padding-bottom:7px;}
+html body .luma-admin-navigation {border-top:1px solid hsl(var(--border));padding-top:12px;}
+html body .luma-sidebar-footer {padding:8px 12px;}
+html body .luma-sidebar .luma-telegram {font-size:12px;margin-bottom:4px;}
+html body .luma-sidebar .luma-signout {min-height:40px;}
+html body .luma-mobile-topbar button {height:44px;width:44px;}
+html body .luma-mobile-nav .member-bottom-nav-item.is-active .member-bottom-nav-icon {background:hsl(var(--secondary));color:hsl(var(--primary));}
+html body .luma-mobile-nav .member-bottom-nav-label {font-size:12px;}
+html body .luma-mobile-nav .member-bottom-nav-inner {height:72px;}
+html body .luma-admin-funds p {font-size:24px;overflow-wrap:anywhere;}
+html body .luma-admin-heading-icon {background:hsl(var(--primary));}
+html body .luma-admin-shortcuts {align-items:stretch;}
+html body .luma-admin-shortcuts h3 {font-size:14px;line-height:1.5;}
+html body .luma-admin-shortcuts p {font-size:12px;}
+html body .member-page table {min-width:720px;}
+html body .member-page table :is(th,td) {font-size:13px;line-height:1.5;padding:12px;}
+html body .member-page :is(.overflow-x-auto,[data-radix-scroll-area-viewport]) {max-width:100%;}
+html body [role="dialog"] {max-height:calc(100dvh - 32px);overflow-y:auto;}
+html body [role="dialog"][aria-label="Navigation menu"] {max-height:100dvh;overflow:hidden;}
+html body [role="tablist"] {height:auto;flex-wrap:wrap;min-width:0;}
+html body [role="tab"] {white-space:normal;min-height:44px;line-height:1.4;}
+html body .engagement-order-page.luma-order-workspace {max-width:none;padding:0;margin:0;}
+.luma-order-heading {padding:0 0 24px;border-bottom:1px solid hsl(var(--border));margin-bottom:24px;}
+.luma-order-heading p {font-size:13px;margin-top:6px;}
+.luma-order-columns {display:grid;grid-template-columns:minmax(0,1fr);gap:24px;align-items:start;}
+.luma-order-fields {display:flex;flex-direction:column;gap:20px;min-width:0;}
+html body .luma-order-fields > div:first-child {border:1px solid hsl(var(--border)) !important;border-radius:8px !important;background:hsl(var(--card)) !important;padding:0 !important;}
+.luma-bundle-field {padding:16px;border:1px solid hsl(var(--border));border-radius:8px;background:hsl(var(--card));flex-wrap:wrap;}
+html body .luma-bundle-field label {font-size:14px;font-weight:700;}
+html body .luma-bundle-field [role="combobox"] {flex-basis:100%;font-size:14px;}
+.luma-platform-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:10px;}
+html body .luma-platform-grid button {min-height:80px;font-size:13px;text-transform:none;}
+.luma-platform-grid .platform-brand-icon {width:26px;height:26px;}
+.luma-order-aside {border:1px solid hsl(var(--border));background:hsl(var(--card));border-radius:8px;overflow:hidden;min-width:0;}
+.luma-summary-heading {background:hsl(var(--primary));color:hsl(var(--primary-foreground));padding:20px;}
+html body .luma-summary-heading h2 {font-size:18px;color:hsl(var(--primary-foreground));}
+.luma-summary-details {padding:20px;display:flex;flex-direction:column;gap:16px;font-size:13px;border-bottom:1px solid hsl(var(--border));}
+.luma-summary-details > div {display:flex;justify-content:space-between;gap:16px;}
+.luma-summary-details dt {color:hsl(var(--muted-foreground));}
+.luma-summary-details dd {font-weight:700;text-align:right;overflow-wrap:anywhere;max-width:60%;}
+html body .luma-order-aside > [class*="bg-card"] {border:0 !important;border-radius:0 !important;}
+.luma-order-aside > div > div > div {flex-direction:column;align-items:stretch;gap:16px;}
+.luma-order-aside > div > div > div > div:first-child {flex-direction:column;gap:6px;align-items:flex-start;}
+.luma-order-aside > div > div > div > div:first-child span:last-child {white-space:normal;}
+.luma-order-aside .w-px {display:none;}
+.luma-order-aside button {width:100%;min-height:48px;font-size:14px;}
+html body .luma-order-fields .engagement-type-card {border-left:1px solid hsl(var(--border)) !important;}
+html body .luma-order-fields .engagement-type-card [role="switch"] {border-radius:999px;}
+html body .member-page [role="switch"] {border-radius:999px;}
+html body .member-page [role="switch"][data-state="checked"] > span {transform:translateX(20px) !important;}
+html body .member-page [role="switch"][data-state="unchecked"] > span {transform:translateX(0) !important;}
+html body .member-auth-card button[type="submit"] {border-radius:6px !important;}
+html body .luma-maintenance [class*="flex-col"] {flex-wrap:wrap;}
+@media(min-width:1024px) {
+ .luma-desktop-sidebar {display:block;}
+ html body .luma-smart-content {padding-left:252px;}
+ html body .luma-page-gutter {padding:28px;}
+ html body .luma-desktop-masthead {position:sticky;top:0;z-index:30;}
+ .luma-nav-collapsed .luma-desktop-sidebar {width:64px;}
+ html body .luma-nav-collapsed .luma-smart-content {padding-left:64px;}
+ .luma-nav-collapsed .luma-sidebar-brand {padding:0 14px;}
+ .luma-nav-collapsed .luma-identity > span,.luma-nav-collapsed .luma-sidebar-account,.luma-nav-collapsed .luma-nav-caption,.luma-nav-collapsed .luma-sidebar-link span,.luma-nav-collapsed .luma-sidebar-footer {display:none;}
+ .luma-nav-collapsed .luma-sidebar-links {padding:6px;}
+ html body .luma-nav-collapsed .luma-sidebar nav .luma-sidebar-link {justify-content:center;padding:12px 4px;}
+}
+@media(min-width:1200px) {
+ .luma-order-columns {grid-template-columns:minmax(0,1fr) 304px;}
+ .luma-order-aside {position:sticky;top:88px;}
+}
+@media(max-width:640px) {
+ html body .member-page h1 {font-size:22px;}
+ .luma-order-heading {padding-bottom:18px;margin-bottom:18px;}
+ .luma-order-fields {gap:16px;}
+ .luma-order-columns {gap:20px;}
+ .luma-platform-grid {grid-template-columns:repeat(3,minmax(0,1fr));}
+ html body .member-page table {min-width:680px;}
+ html body .member-page input {font-size:16px;}
+ html body .member-page .luma-maintenance [class*="flex-col"] {flex-direction:column;align-items:flex-start;}
+ html body .member-page .luma-maintenance p {max-width:none;}
+}
