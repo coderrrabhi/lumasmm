@@ -18,6 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import {
   Wallet as WalletIcon,
   ArrowUpRight,
@@ -414,48 +415,35 @@ export default function Wallet() {
         {/* Add Funds — method selector */}
         <div className="space-y-5">
           <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-2 shadow-[0_8px_32px_-12px_rgba(0,0,0,0.08)]">
-            <div className="grid grid-cols-3 gap-1.5 relative">
+            <div className="luma-payment-methods" role="group" aria-label="Payment method">
               {([
-                { id: 'upi' as const, label: 'Instant UPI', sub: 'GPay · PhonePe · Paytm', icon: Zap, gradient: 'from-primary to-primary', ring: 'ring-primary/30' },
-                { id: 'crypto' as const, label: 'Pay with Crypto', sub: 'USDT · BTC · TRX · LTC', icon: Bitcoin, gradient: 'from-accent to-accent', ring: 'ring-accent/30' },
-                { id: 'manual' as const, label: 'Talk to Admin', sub: 'Custom / bulk top-ups', icon: MessageCircle, gradient: 'from-primary to-accent', ring: 'ring-accent/30' },
+                { id: 'upi' as const, label: 'Instant UPI', sub: 'GPay · PhonePe · Paytm', icon: Zap },
+                { id: 'crypto' as const, label: 'Pay with Crypto', sub: 'USDT · BTC · TRX · LTC', icon: Bitcoin },
+                { id: 'manual' as const, label: 'Talk to Admin', sub: 'Custom / bulk top-ups', icon: MessageCircle },
               ]).map((opt) => {
                 const active = payMethod === opt.id;
                 const Icon = opt.icon;
                 return (
-                  <button
+                  <Button
                     key={opt.id}
+                    type="button"
+                    variant="outline"
+                    aria-pressed={active}
                     onClick={() => setPayMethod(opt.id)}
-                    className={cn(
-                      'group relative flex flex-col md:flex-row items-center md:items-center gap-1.5 md:gap-3 rounded-xl px-2 md:px-4 py-2.5 md:py-3 text-center md:text-left transition-all duration-300 overflow-hidden',
-                      active
-                        ? `bg-gradient-to-br ${opt.gradient} text-white shadow-lg ring-2 ${opt.ring} scale-[1.02]`
-                        : 'bg-secondary/50 text-foreground hover:bg-secondary hover:scale-[1.01]'
-                    )}
+                    className="luma-payment-method"
                   >
-                    {active && (
-                      <span className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-white/20 blur-2xl pointer-events-none" />
-                    )}
-                    <span
-                      className={cn(
-                        'relative flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-lg shrink-0 transition-colors',
-                        active ? 'bg-white/20 backdrop-blur-sm' : `bg-gradient-to-br ${opt.gradient} text-white`
-                      )}
-                    >
-                      <Icon className="h-4 w-4 md:h-5 md:w-5" />
+                    <span className="luma-payment-icon">
+                      <Icon className="h-5 w-5" aria-hidden="true" />
                     </span>
-                    <span className="relative flex-1 min-w-0 w-full">
-                      <span className={cn('block text-[11px] leading-tight md:text-sm font-bold md:truncate', active ? 'text-white' : 'text-foreground')}>
+                    <span className="luma-payment-copy">
+                      <span className="luma-payment-label">
                         {opt.label}
                       </span>
-                      <span className={cn('hidden md:block text-[10px] mt-0.5 truncate', active ? 'text-white/80' : 'text-muted-foreground')}>
+                      <span className="luma-payment-caption">
                         {opt.sub}
                       </span>
                     </span>
-                    {active && (
-                      <span className="hidden md:block absolute bottom-1.5 left-1/2 -translate-x-1/2 h-1 w-8 rounded-full bg-white/60" />
-                    )}
-                  </button>
+                  </Button>
                 );
               })}
             </div>

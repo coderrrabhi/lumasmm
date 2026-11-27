@@ -201,8 +201,8 @@ html body .single-order-page form {padding:24px;background:hsl(var(--card));bord
 html body .single-order-page h2 {font-size:13px;color:hsl(var(--foreground));}
 html body .single-order-page h2 > span {display:none;}
 html body .single-order-page .single-field {height:46px;}
-html body .single-order-page .single-total {border-radius:5px;background:hsl(var(--luma-nav)) !important;}
-html body .single-order-page .single-total button {background:hsl(var(--primary)) !important;color:hsl(var(--primary-foreground));}
+html body .single-order-page .single-total {border-radius:5px;background:hsl(var(--luma-red-soft)) !important;color:hsl(var(--luma-ink)) !important;border:1px solid hsl(var(--luma-red) / .25) !important;box-shadow:none !important;} html body .single-order-page .single-total * {color:inherit;}
+html body .single-order-page .single-total button {background:hsl(var(--luma-red-deep)) !important;color:hsl(var(--luma-white)) !important;border:0 !important;opacity:1 !important;}
 html body .luma-account-heading {background:transparent !important;color:hsl(var(--foreground));border:0;border-bottom:1px solid hsl(var(--border));padding:8px 0 24px;}
 html body .luma-account-heading :is(h1,p) {color:hsl(var(--foreground)) !important;}
 html body .luma-dashboard-stat {border-top:0 !important;border-left:3px solid hsl(var(--primary)) !important;}

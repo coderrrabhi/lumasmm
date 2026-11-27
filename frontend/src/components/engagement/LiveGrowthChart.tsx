@@ -34,7 +34,7 @@ import {
 } from "@/lib/organic-pattern-library";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import { Activity, Clock, RefreshCw, Sparkles, TrendingUp, Zap, Search, Hash } from "lucide-react";
+import { Activity, Clock, RefreshCw, Sparkles, TrendingUp, Zap, Search, Hash, Pencil } from "lucide-react";
 
 type Platform = 'instagram' | 'tiktok' | 'youtube' | 'twitter' | 'facebook';
 
@@ -451,6 +451,16 @@ const splitQuantityUltraOrganic = (
   return raw;
 };
 
+const CURVE_PRESETS: { name: string; desc: string; style: string; path: string }[] = [
+  { name: 'Curve 1', desc: 'Smooth gradual growth', style: 'slow-steady', path: 'M2,36 C30,34 55,14 98,8' },
+  { name: 'Curve 2', desc: 'Slow start, rapid growth, then stabilization', style: 'smooth-s-curve', path: 'M2,36 C35,36 45,8 98,6' },
+  { name: 'Curve 3', desc: 'Delayed start, sharp burst, then flat ending', style: 'delayed-explosion', path: 'M2,36 L50,36 C62,36 66,6 76,6 L98,6' },
+  { name: 'Curve 4', desc: 'Consistent natural-looking gradual growth', style: 'gradual-accelerate', path: 'M2,34 C40,28 70,18 98,6' },
+];
+function curveTemplateId(style: string): number | undefined {
+  return searchTemplates(style)[0]?.id;
+}
+
 export function LiveGrowthChart({ 
   engagements, 
   refreshKey = 0, 
@@ -464,7 +474,8 @@ export function LiveGrowthChart({
   
   // Template search state
   const [templateSearch, setTemplateSearch] = useState('');
-  const [activeTemplateId, setActiveTemplateId] = useState<number | undefined>(initialTemplateId);
+  const [activeTemplateId, setActiveTemplateId] = useState<number | undefined>(initialTemplateId ?? curveTemplateId(CURVE_PRESETS[0].style));
+  const [customMode, setCustomMode] = useState(false);
   
   // Get current template info
   const currentTemplate = activeTemplateId ? getTemplateById(activeTemplateId) : undefined;
@@ -765,17 +776,6 @@ export function LiveGrowthChart({
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {onRefresh && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRandomTemplate}
-                className="h-8 px-3 gap-1.5 border-border hover:bg-secondary text-foreground"
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">New Pattern</span>
-              </Button>
-            )}
             {/* Chart always shows each type as % of its own target */}
             <Badge variant="outline" className="border-border bg-secondary/40 text-foreground gap-1">
               <Sparkles className="h-3 w-3" />
@@ -784,178 +784,64 @@ export function LiveGrowthChart({
           </div>
         </CardTitle>
 
-        {/* Template Search & Info */}
-        <div className="flex flex-wrap items-center gap-2 mt-3 p-2 rounded-lg bg-secondary/30 border border-border">
-          <div className="flex items-center gap-1.5">
-            <Hash className="h-4 w-4 text-primary" />
-            <span className="text-xs text-muted-foreground">Template:</span>
-          </div>
-          <div className="relative">
-            <Input
-              type="number"
-              placeholder={`1-${totalTemplates}`}
-              value={templateSearch || usedTemplateId || ''}
-              onChange={(e) => handleTemplateSearch(e.target.value)}
-              className="h-7 w-20 text-xs font-mono text-center bg-background border-border"
-              min={1}
-              max={totalTemplates}
-            />
-          </div>
-          {(currentTemplate || usedTemplateId) && (
-            <Badge variant="outline" className="text-xs border-primary/50 text-primary bg-primary/10">
-              #{usedTemplateId} • {currentTemplate?.style || 'Custom'}
-            </Badge>
-          )}
-          <span className="text-[10px] text-muted-foreground ml-auto">
-            {totalTemplates}+ patterns
-          </span>
-        </div>
-
-        <div className="flex flex-wrap gap-2 mt-3">
-          <Badge className="bg-primary text-primary-foreground font-bold gap-1">
-            <Zap className="h-3 w-3" />
-            {stats?.totalEngagements.toLocaleString()} total
-          </Badge>
-          <Badge variant="outline" className="border-border text-foreground gap-1">
-            <TrendingUp className="h-3 w-3" />
-            {stats?.totalRuns} runs
-          </Badge>
-          <Badge variant="outline" className="border-border text-foreground gap-1">
-            <Clock className="h-3 w-3" />
-            ~{formatDuration(stats?.duration || 0)}
-          </Badge>
-        </div>
-
-        <div className="flex flex-wrap gap-2 mt-3">
-          {typeBreakdown.map(({ type, quantity }) => {
-            const cfg = ENGAGEMENT_CONFIG[type];
-            return (
-              <div
-                key={type}
-                className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-secondary/50 border border-border"
-              >
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: TYPE_COLORS[type as VisibleType] }}
-                />
-                <span className="text-xs">{cfg?.emoji}</span>
-                <span className="text-xs font-bold text-foreground">{quantity.toLocaleString()}</span>
+        {/* Curve picker */}
+        <div className="mt-3">
+          <p className="text-sm font-semibold text-foreground">Curve</p>
+          <p className="text-xs text-muted-foreground">How delivery is spread over time.</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mt-2">
+            {CURVE_PRESETS.map((c) => {
+              const id = curveTemplateId(c.style);
+              const selected = !customMode && usedTemplateId === id;
+              return (
+                <button
+                  key={c.name}
+                  type="button"
+                  onClick={() => { setCustomMode(false); setTemplateSearch(''); setActiveTemplateId(id); if (id) onTemplateChange?.(id); }}
+                  className={`text-left rounded-xl border-2 p-2.5 transition-colors ${selected ? 'border-primary bg-primary/10' : 'border-border bg-background hover:border-primary/50'}`}
+                >
+                  <svg viewBox="0 0 100 40" className="w-full h-10" aria-hidden="true">
+                    <path d={`${c.path} L100,40 L0,40 Z`} className="fill-primary/15" />
+                    <path d={c.path} fill="none" strokeWidth="2.5" className="stroke-primary" />
+                  </svg>
+                  <span className="block text-sm font-bold text-foreground mt-1">{c.name}</span>
+                  <span className="block text-[11px] leading-tight text-muted-foreground">{c.desc}</span>
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              onClick={() => setCustomMode(true)}
+              className={`text-left rounded-xl border-2 border-dashed p-2.5 transition-colors ${customMode ? 'border-primary bg-primary/10' : 'border-border bg-background hover:border-primary/50'}`}
+            >
+              <div className="w-full h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Pencil className="h-4 w-4 text-primary" />
               </div>
-            );
-          })}
+              <span className="block text-sm font-bold text-foreground mt-1">Custom</span>
+              <span className="block text-[11px] leading-tight text-muted-foreground">Pick any of {totalTemplates}+ patterns</span>
+            </button>
+          </div>
+          {customMode && (
+            <div className="flex flex-wrap items-center gap-2 mt-2 p-2 rounded-lg bg-secondary/30 border border-border">
+              <Hash className="h-4 w-4 text-primary" />
+              <span className="text-xs text-muted-foreground">Pattern #</span>
+              <Input
+                type="number"
+                placeholder={`1-${totalTemplates}`}
+                value={templateSearch || usedTemplateId || ''}
+                onChange={(e) => handleTemplateSearch(e.target.value)}
+                className="h-7 w-20 text-xs font-mono text-center bg-background border-border"
+                min={1}
+                max={totalTemplates}
+              />
+              <Button variant="outline" size="sm" onClick={handleRandomTemplate} className="h-7 px-2 gap-1 text-xs">
+                <RefreshCw className="h-3 w-3" /> Random
+              </Button>
+            </div>
+          )}
         </div>
+
       </CardHeader>
 
-      <CardContent className="p-3 sm:p-6">
-        <div className="h-[320px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <defs>
-                {activeTypes.map((type) => (
-                  <linearGradient key={type} id={`grad-${type}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={TYPE_COLORS[type]} stopOpacity={0.55} />
-                    <stop offset="45%" stopColor={TYPE_COLORS[type]} stopOpacity={0.18} />
-                    <stop offset="95%" stopColor={TYPE_COLORS[type]} stopOpacity={0.02} />
-                  </linearGradient>
-                ))}
-              </defs>
-
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.15} vertical={false} />
-
-              <XAxis
-                dataKey="timestamp"
-                type="number"
-                scale="time"
-                domain={["dataMin", "dataMax"]}
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={9}
-                tickLine={false}
-                axisLine={false}
-                tickCount={6}
-                minTickGap={28}
-                tickFormatter={(ts) => format(new Date(Number(ts)), "HH:mm")}
-              />
-              <YAxis
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={10}
-                tickLine={false}
-                axisLine={false}
-                width={45}
-                domain={undefined}
-                tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(0)}K` : value}
-              />
-
-              <Tooltip
-                content={({ active, payload, label }) => {
-                  if (!active || !payload?.length) return null;
-                  const ts = typeof label === "number" ? label : Number(label);
-                  // Find the raw data point for showing actual values
-                  const dataPoint = chartData.find(d => d.timestamp === ts);
-                  return (
-                    <div className="bg-background/95 backdrop-blur-sm border border-border rounded-lg p-3 shadow-xl">
-                      <p className="text-xs text-muted-foreground mb-2 font-mono">
-                        {Number.isFinite(ts) ? format(new Date(ts), "HH:mm") : String(label)}
-                      </p>
-                      {payload
-                        .filter((p) => (p.value as number) > 0)
-                        .map((entry, idx) => {
-                          // Extract the base type from normalized key
-                          const rawKey = (entry.dataKey as string).replace('_norm', '') as VisibleType;
-                          const cfg = ENGAGEMENT_CONFIG[rawKey];
-                          const actualValue = dataPoint ? dataPoint[rawKey] : (entry.value as number);
-                          const normValue = dataPoint ? dataPoint[`${rawKey}_norm` as keyof ChartDataPoint] as number : 0;
-                          return (
-                            <div key={idx} className="flex items-center gap-2 text-sm">
-                              <div
-                                className="w-2 h-2 rounded-full"
-                                style={{ backgroundColor: entry.color as string }}
-                              />
-                              <span>{cfg?.emoji}</span>
-                              <span className="font-bold">{actualValue.toLocaleString()}</span>
-                            </div>
-                          );
-                        })}
-                    </div>
-                  );
-                }}
-              />
-
-              {activeTypes.map((type) => (
-                <Area
-                  key={type}
-                  type="linear"
-                  dataKey={type}
-                  stroke={TYPE_COLORS[type]}
-                  strokeDasharray={STROKE_DASH[type]}
-                  strokeWidth={type === "views" ? 2.5 : 1.8}
-                  fill={`url(#grad-${type})`}
-                  fillOpacity={1}
-                  dot={false}
-                  activeDot={{
-                    r: 4,
-                    strokeWidth: 2,
-                    stroke: TYPE_COLORS[type],
-                    fill: "hsl(var(--background))",
-                  }}
-                  isAnimationActive={false}
-                />
-              ))}
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-center gap-4 mt-4 pt-4 border-t border-border">
-          {activeTypes.map((type) => {
-            const cfg = ENGAGEMENT_CONFIG[type];
-            return (
-              <div key={type} className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: TYPE_COLORS[type] }} />
-                <span className="text-xs text-muted-foreground">{cfg?.label}</span>
-              </div>
-            );
-          })}
-        </div>
-      </CardContent>
     </Card>
   );
 }
