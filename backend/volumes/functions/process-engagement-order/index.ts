@@ -1,3 +1,4 @@
+import { viewPacedRuns, mappedMinimum, PACED_TYPES, VIEW_TYPES } from '../_shared/view-paced.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { isManualAdsPlatform } from '../_shared/platform-policy.ts'
@@ -501,6 +502,13 @@ serve(async (req) => {
         let viewsFirstRunScheduled = false
         let viewsEndTime: Date | null = null
         let viewsDurationMinutes = 0
+        let finalViewsRuns: any[] = []
+        const viewItem = createdItemIds.find(c => VIEW_TYPES.includes(c.type))
+        if (viewItem) {
+          const { data, error } = await supabase.from('organic_run_schedule').select('scheduled_at, quantity_to_send').eq('engagement_order_item_id', viewItem.itemId).order('run_number')
+          if (error) throw new Error(error.message)
+          finalViewsRuns = data ?? []
+        }
 
         for (const { type: engType, itemId, engagement, finalServiceId } of sortedItems) {
          const itemTag = `${orderTag}[${engType} item=${itemId.slice(0,8)} qty=${engagement.quantity}]`
@@ -522,6 +530,8 @@ serve(async (req) => {
           const quantityOverride = bundleItemLimits.get(engType)?.min_quantity_override
           if (quantityOverride != null) providerMin = quantityOverride
           else if (engType === 'views' && floorMin > 0) providerMin = Math.max(providerMin, floorMin)
+
+          if (PACED_TYPES.includes(engType)) providerMin = await mappedMinimum(supabase, finalServiceId, providerMin)
 
           const isViewType = ['views', 'impressions', 'reach', 'plays', 'watch_hours'].includes(engType)
           const stagger = platformStagger[engType] || platformStagger.generic
@@ -760,6 +770,17 @@ serve(async (req) => {
             validatedEntries.forEach((e, i) => e.run_number = i + 1)
           }
 
+          // Automatic engagement is derived from the final stored Views curve.
+          if (PACED_TYPES.includes(engType) && viewItem) {
+            if (!finalViewsRuns.length) throw new Error('Views schedule unavailable; engagement must wait')
+            validatedEntries = viewPacedRuns(finalViewsRuns, totalTargetQty, providerMin).map((run, index) => ({
+              engagement_order_item_id: itemId, run_number: index + 1,
+              scheduled_at: run.scheduled_at, quantity_to_send: run.quantity_to_send,
+              base_quantity: run.quantity_to_send, status: 'pending',
+            }))
+          }
+          if (VIEW_TYPES.includes(engType) && !finalViewsRuns.length) finalViewsRuns = validatedEntries
+
           if (validatedEntries.length > 0) {
             const { error: schedErr } = await supabase.from('organic_run_schedule').insert(validatedEntries)
             if (schedErr) {
@@ -819,17 +840,19 @@ serve(async (req) => {
               if ((count ?? 0) > 0) { inserted = true; break }
               if (engagement.quantity <= 0) { inserted = true; break }
               const fallbackAt = new Date(Date.now() + (5 + Math.random() * 10) * 60 * 1000).toISOString()
-              const { error: fbErr } = await supabase.from('organic_run_schedule').insert([{
-                engagement_order_item_id: itemId,
-                run_number: 1,
-                scheduled_at: fallbackAt,
-                quantity_to_send: engagement.quantity,
-                base_quantity: engagement.quantity,
-                status: 'pending',
-              }])
+              const minimum = await mappedMinimum(supabase, createdItemIds.find(c => c.itemId === itemId)?.finalServiceId ?? '', 10)
+              if (PACED_TYPES.includes(engType) && viewItem && !finalViewsRuns.length) throw new Error('Views schedule unavailable; no bulk engagement fallback')
+              const fallbackRuns = PACED_TYPES.includes(engType) && finalViewsRuns.length
+                ? viewPacedRuns(finalViewsRuns, engagement.quantity, minimum)
+                : [{ scheduled_at: fallbackAt, quantity_to_send: engagement.quantity }]
+              const { error: fbErr } = await supabase.from('organic_run_schedule').insert(fallbackRuns.map((run, index) => ({
+                engagement_order_item_id: itemId, run_number: index + 1,
+                scheduled_at: run.scheduled_at, quantity_to_send: run.quantity_to_send,
+                base_quantity: run.quantity_to_send, status: 'pending',
+              })))
               if (fbErr) throw fbErr
               console.warn(`${orderTag}[${engType}] 🛟 Fallback run created (qty=${engagement.quantity}, attempt ${attempted})`)
-              itemReport[itemId] = { ...(itemReport[itemId] || { attempts: 0, runsInserted: 0, status: 'failed' }), runsInserted: 1, status: 'fallback' }
+              itemReport[itemId] = { ...(itemReport[itemId] || { attempts: 0, runsInserted: 0, status: 'failed' }), runsInserted: fallbackRuns.length, status: 'fallback' }
               fallbackCreated.push({ type: engType, itemId, qty: engagement.quantity })
               inserted = true
             } catch (sErr: any) {

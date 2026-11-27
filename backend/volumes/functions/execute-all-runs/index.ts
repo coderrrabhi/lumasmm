@@ -397,15 +397,9 @@ async function claimRunLock(params: {
   expectedStatus: 'pending' | 'failed'
   updates: Record<string, any>
 }) {
-  const { data, error } = await params.supabase
-    .from('organic_run_schedule')
-    .update(params.updates)
-    .eq('id', params.runId)
-    .eq('status', params.expectedStatus)
-    // Duplicate safety: never claim a run that already holds a provider order
-    .is('provider_order_id', null)
-    .select('id, status')
-    .maybeSingle()
+  const { data, error } = await params.supabase.rpc('claim_view_paced_run', {
+    p_run_id: params.runId, p_expected_status: params.expectedStatus, p_updates: params.updates,
+  })
 
   return {
     error,
