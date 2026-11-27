@@ -255,6 +255,8 @@ services:
       CRON_SECRET: ${CRON_SECRET}
       ZAPUPI_ZAP_KEY: ${ZAPUPI_ZAP_KEY}
       OXAPAY_MERCHANT_API_KEY: ${OXAPAY_MERCHANT_API_KEY}
+      FUND_ALERT_BOT_TOKEN: ${FUND_ALERT_BOT_TOKEN}
+      FUND_ALERT_CHAT_ID: ${FUND_ALERT_CHAT_ID}
     command:
     - start
     - --main-service

@@ -66,7 +66,18 @@ Deno.serve(async req => {
   const update = await req.json().catch(() => null);
   if (!update || !Number.isInteger(update.update_id)) return new Response('Invalid update', { status: 400 });
   const message = update.message;
-  if (!message || !isFundAdminChat(message.chat?.id, chats) || typeof message.text !== 'string') return Response.json({ ok: true, ignored: true });
+  if (!message || typeof message.text !== 'string' || !message.chat?.id) return Response.json({ ok: true, ignored: true });
+  if (!isFundAdminChat(message.chat.id, chats)) {
+    // Public visitors get a safe welcome only; balances and payment alerts stay admin-only.
+    const { data: seen } = await db.from('fund_bot_updates').upsert({ update_id: update.update_id }, { onConflict: 'update_id', ignoreDuplicates: true }).select('update_id');
+    if (seen?.length) EdgeRuntime.waitUntil(fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(10000),
+      body: JSON.stringify({ chat_id: message.chat.id, parse_mode: 'HTML', disable_web_page_preview: true,
+        text: '👑 <b>Welcome to LumaSMM!</b>\n━━━━━━━━━━━━━━━━━━\n🚀 Organic views, likes, comments & more\n⚡ Instant UPI / Crypto deposit\n📈 Natural delivery curves\n\n🌐 Website: https://lumasmm.com\n📢 Channel: https://t.me/lumasmmofficial\n💬 Support: @lumasmmsupport',
+        reply_markup: { inline_keyboard: [[{ text: '🌐 Open LumaSMM', url: 'https://lumasmm.com' }], [{ text: '📢 Channel', url: 'https://t.me/lumasmmofficial' }, { text: '💬 Support', url: 'https://t.me/lumasmmsupport' }]] } }),
+    }).catch(() => undefined));
+    return Response.json({ ok: true });
+  }
   // Claim each Telegram update once across worker restarts before sending anything.
   const { data: claimed, error } = await db.from('fund_bot_updates').upsert({
     update_id: update.update_id,
