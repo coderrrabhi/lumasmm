@@ -25,7 +25,7 @@ async function send(chatId: string | number, text: string) {
 async function process(chatId: string | number, command: ReturnType<typeof fundBotCommand>) {
   try {
     if (command === 'menu') {
-      await send(chatId, '🌿 <b>MultySMM Admin Desk</b>\n━━━━━━━━━━━━━━━━━━\n💰 Live provider balances\n📊 Verified unsent-work top-up plan\n🔔 ZapUPI / OxaPay payment alerts\n\nNeeche button tap karein 👇');
+      await send(chatId, '🌿 <b>LumaSMM Admin Desk</b>\n━━━━━━━━━━━━━━━━━━\n💰 Live provider balances\n📊 Verified unsent-work top-up plan\n🔔 ZapUPI / OxaPay payment alerts\n\nNeeche button tap karein 👇');
       return;
     }
     await send(chatId, '⏳ <b>Live provider check chal raha hai…</b>');
@@ -40,7 +40,7 @@ async function process(chatId: string | number, command: ReturnType<typeof fundB
     const total = report.providers.reduce((sum: number, p: any) => sum + (command === 'balance' ? p.balance_inr : Math.max(0, p.cost_inr - p.balance_inr)), 0);
     const heading = command === 'balance' ? '💰 <b>Live Provider Balances</b>' : '📊 <b>Provider Top-up Plan</b>';
     const stamp = new Date(report.generated_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
-    const footer = `\n━━━━━━━━━━━━━━━━━━\n${command === 'balance' ? 'Verified balance total' : 'Required top-up'}: <b>${command === 'plan' && incomplete ? 'Incomplete' : inr(total)}</b>${incomplete ? '\n⚠️ Unavailable providers ko zero balance nahi maana gaya. Incomplete plan par top-up na karein.' : ''}\n🕒 ${stamp} IST\n<a href="https://multysmm.com/admin/topup-plan">Website par full report ↗</a>`;
+    const footer = `\n━━━━━━━━━━━━━━━━━━\n${command === 'balance' ? 'Verified balance total' : 'Required top-up'}: <b>${command === 'plan' && incomplete ? 'Incomplete' : inr(total)}</b>${incomplete ? '\n⚠️ Unavailable providers ko zero balance nahi maana gaya. Incomplete plan par top-up na karein.' : ''}\n🕒 ${stamp} IST\n<a href="https://lumasmm.com/admin/topup-plan">Website par full report ↗</a>`;
     let chunk = `${heading}\n━━━━━━━━━━━━━━━━━━\n`;
     for (const line of lines) {
       if (chunk.length + line.length > 3200) { await send(chatId, chunk); chunk = ''; }
@@ -66,7 +66,8 @@ Deno.serve(async req => {
   const update = await req.json().catch(() => null);
   if (!update || !Number.isInteger(update.update_id)) return new Response('Invalid update', { status: 400 });
   const message = update.message;
-  if (!message || !isFundAdminChat(message.chat?.id, chats) || typeof message.text !== 'string') return Response.json({ ok: true, ignored: true });
+  if (!message || typeof message.text !== 'string' || !message.chat?.id) return Response.json({ ok: true, ignored: true });
+  // Owner choice: only the two admins use this bot, so every chat gets the full admin menu.
   // Claim each Telegram update once across worker restarts before sending anything.
   const { data: claimed, error } = await db.from('fund_bot_updates').upsert({
     update_id: update.update_id,
