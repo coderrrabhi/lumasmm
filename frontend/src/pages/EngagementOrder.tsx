@@ -8,10 +8,8 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { chooseBundle, platformBundles } from "@/lib/bundle-selection";
+import { chooseBundle } from "@/lib/bundle-selection";
 import { bundleQuantityLimits } from '../../supabase/functions/_shared/bundle-quantity-policy';
-import { Package } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -329,7 +327,6 @@ export default function EngagementOrder() {
     refetchOnMount: true,
   });
 
-  const bundleOptions = useMemo(() => platformBundles(bundles || [], platform), [bundles, platform]);
   const selectedBundle = useMemo(() => chooseBundle(bundles || [], platform, selectedBundleId), [bundles, platform, selectedBundleId]);
   const seededBundleRef = useRef<string | null>(null);
 
@@ -1218,7 +1215,7 @@ export default function EngagementOrder() {
   return (
     <DashboardLayout>
       <div className="engagement-order-page luma-order-workspace">
-        <header className="luma-order-heading"><h1>Create <span className="text-primary">Engagement Order</span></h1><p className="text-muted-foreground">{location.search.includes('mode=mass') ? 'Mass order' : 'Single post'} · {selectedBundle?.name || 'Choose a bundle'}</p></header>
+        <header className="luma-order-heading"><h1>Create <span className="text-primary">Engagement Order</span></h1><p className="text-muted-foreground">{location.search.includes('mode=mass') ? 'Mass order' : 'Single post'}</p></header>
         <div className="luma-order-columns"><div className="luma-order-fields">
         {/* Platform Selector */}
         <Card className="glass-card border-2 border-border">
@@ -1237,23 +1234,6 @@ export default function EngagementOrder() {
             />
           </CardContent>
         </Card>
-
-        <div className="luma-bundle-field flex min-w-0 items-center gap-2">
-          <Package className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-          <Label htmlFor="engagement-bundle" className="shrink-0 text-xs">Bundle</Label>
-          <Select value={selectedBundle?.id || ''} onValueChange={setSelectedBundleId} disabled={bundlesLoading || !bundleOptions.length}>
-            <SelectTrigger id="engagement-bundle" className="h-9 min-w-0 flex-1 rounded-lg text-xs [&>span]:min-w-0 [&>span]:truncate">
-              <SelectValue placeholder={bundlesLoading ? 'Loading bundles…' : 'Choose bundle'} />
-            </SelectTrigger>
-            <SelectContent className="max-w-[calc(100vw-2rem)]">
-              {bundleOptions.map((bundle, index) => (
-                <SelectItem key={bundle.id} value={bundle.id} className="text-xs [&>span:last-child]:whitespace-normal [&>span:last-child]:break-words">
-                  {bundle.name}{index === 0 ? ' · Primary' : ''}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
 
         {/* Repeat Order Banner */}
         {(repeatSource || repeatError) && (
@@ -1491,7 +1471,7 @@ export default function EngagementOrder() {
 
         </div><aside className="luma-order-aside" aria-label="Order summary">
         <div className="luma-summary-heading"><h2>Order Summary</h2></div>
-        <dl className="luma-summary-details"><div><dt>Platform</dt><dd>{platform.charAt(0).toUpperCase() + platform.slice(1)}</dd></div><div><dt>Bundle</dt><dd>{selectedBundle?.name || 'Not selected'}</dd></div><div><dt>Engagements</dt><dd>{totalEngagements.toLocaleString()}</dd></div><div><dt>Active types</dt><dd>{Object.values(engagements).filter(e => e.enabled).length}</dd></div></dl>
+        <dl className="luma-summary-details"><div><dt>Platform</dt><dd>{platform.charAt(0).toUpperCase() + platform.slice(1)}</dd></div><div><dt>Engagements</dt><dd>{totalEngagements.toLocaleString()}</dd></div><div><dt>Active types</dt><dd>{Object.values(engagements).filter(e => e.enabled).length}</dd></div></dl>
         {/* Order Summary — existing verified checkout controls */}
         <Card className="border border-border/70 bg-card shadow-sm overflow-hidden">
           <CardContent className="p-3 sm:p-4">

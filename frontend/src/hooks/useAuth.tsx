@@ -124,6 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let isMounted = true;
     let initialLoadDone = false;
+    let userDataTimer: ReturnType<typeof setTimeout> | undefined;
 
     // Listener for ONGOING auth changes - does NOT control isLoading
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -135,8 +136,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Only fetch user data on ONGOING changes (not initial)
         // Initial load is handled by initializeAuth below
         if (initialLoadDone) {
+          if (userDataTimer !== undefined) clearTimeout(userDataTimer);
           if (session?.user) {
-            fetchUserData(session.user.id);
+            // Auth callbacks run inside the session lock. Start authenticated
+            // reads only after the callback releases it.
+            const userId = session.user.id;
+            userDataTimer = setTimeout(() => {
+              if (isMounted) void fetchUserData(userId);
+            }, 0);
           } else {
             setProfile(null);
             setWallet(null);
@@ -188,6 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       isMounted = false;
+      if (userDataTimer !== undefined) clearTimeout(userDataTimer);
       subscription.unsubscribe();
     };
   }, [fetchUserData]);

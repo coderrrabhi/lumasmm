@@ -5,8 +5,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Mail, Lock, User, Loader2, ArrowLeft, Shield, Zap, Eye, EyeOff, ArrowRight, CheckCircle2, Send } from 'lucide-react';
+import { Mail, Lock, User, ArrowLeft, Shield, Zap, Eye, EyeOff, ArrowRight, CheckCircle2, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { withAuthDeadline } from '@/lib/auth-request';
 import { z } from 'zod';
 import { PageMeta } from '@/components/seo/PageMeta';
 import '@/styles/member-experience.css';
@@ -51,7 +52,7 @@ export default function Auth() {
       if (!trimmedEmail || !z.string().email().safeParse(trimmedEmail).success) {
         setError('Please enter a valid email address'); setIsSubmitting(false); return;
       }
-      const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, { redirectTo: `${window.location.origin}/auth` });
+      const { error } = await withAuthDeadline(supabase.auth.resetPasswordForEmail(trimmedEmail, { redirectTo: `${window.location.origin}/auth` }));
       if (error) setError(error.message); else setSuccessMessage('Password reset email sent! Check your inbox.');
     } catch { setError('Something went wrong.'); }
     finally { setIsSubmitting(false); }
@@ -64,12 +65,13 @@ export default function Auth() {
       if (isLogin) {
         const v = loginSchema.safeParse({ email, password });
         if (!v.success) { setError(v.error.errors[0].message); setIsSubmitting(false); return; }
-        const { error } = await signIn(email, password);
+        const { error } = await withAuthDeadline(signIn(email, password));
         if (error) {
           const msg = error.message.toLowerCase();
           if (msg.includes('invalid login credentials')) setError('Incorrect email or password.');
           else if (msg.includes('email not confirmed')) setError('Please verify your email first.');
           else if (msg.includes('rate limit')) setError('Too many attempts. Try again in 5 mins.');
+          else if (msg.includes('fetch') || msg.includes('abort') || msg.includes('timeout') || msg.includes('timed out')) setError('Connection interrupted. Please check your connection and try again.');
           else setError('Login failed.');
           setIsSubmitting(false); return;
         }
@@ -77,11 +79,12 @@ export default function Auth() {
       } else {
         const v = signupSchema.safeParse({ email, password, fullName });
         if (!v.success) { setError(v.error.errors[0].message); setIsSubmitting(false); return; }
-        const { error } = await signUp(email, password, fullName);
+        const { error } = await withAuthDeadline(signUp(email, password, fullName));
         if (error) {
           const msg = error.message.toLowerCase();
           if (msg.includes('already registered')) setError('This email is already registered.');
           else if (msg.includes('rate limit')) setError('Too many attempts. Wait 5 minutes.');
+          else if (msg.includes('fetch') || msg.includes('abort') || msg.includes('timeout') || msg.includes('timed out')) setError('Connection interrupted. If you already submitted, try signing in before creating another account.');
           else setError(error.message || 'Signup failed.');
           setIsSubmitting(false); return;
         }
@@ -89,7 +92,7 @@ export default function Auth() {
         setTimeout(() => setIsLogin(true), 2000);
       }
     } catch (err: any) {
-      if (!err?.message?.includes('abort')) setError('Something went wrong. Please try again.');
+      setError(err instanceof Error && err.message.includes('timed out') ? err.message : 'Connection interrupted. Please check your connection and try again.');
     } finally { setIsSubmitting(false); }
   };
 
@@ -145,7 +148,7 @@ export default function Auth() {
                   <Button variant="ghost" type="submit" disabled={isSubmitting}
                     className="w-full h-12 rounded-xl text-[13.5px] font-bold text-white flex items-center justify-center gap-2 disabled:opacity-70"
                     style={{ background: GRADIENT, boxShadow: 'var(--shadow-soft)' }}>
-                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Send reset link <ArrowRight className="w-3.5 h-3.5" /></>}
+                    {isSubmitting ? <span role="status">Sending reset link…</span> : <>Send reset link <ArrowRight className="w-3.5 h-3.5" /></>}
                   </Button>
                   <Button variant="ghost" type="button" onClick={() => setIsForgotPassword(false)} className="w-full text-center text-[13px] font-medium" style={{ color: 'hsl(var(--muted-foreground))' }}>
                     Back to login
@@ -186,7 +189,7 @@ export default function Auth() {
                   <Button variant="ghost" type="submit" disabled={isSubmitting}
                     className="w-full h-12 rounded-xl text-[13.5px] font-bold text-white flex items-center justify-center gap-2 disabled:opacity-70 transition-transform hover:-translate-y-0.5"
                     style={{ background: GRADIENT, boxShadow: 'var(--shadow-soft)' }}>
-                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <>{isLogin ? 'Sign in' : 'Create account'} <ArrowRight className="w-3.5 h-3.5" /></>}
+                    {isSubmitting ? <span role="status">{isLogin ? 'Signing in…' : 'Creating account…'}</span> : <>{isLogin ? 'Sign in' : 'Create account'} <ArrowRight className="w-3.5 h-3.5" /></>}
                   </Button>
 
                   <p className="text-center text-[13px]" style={{ color: 'hsl(var(--muted-foreground))' }}>
