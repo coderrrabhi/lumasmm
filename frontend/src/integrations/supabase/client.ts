@@ -2,7 +2,7 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 import { brokeredPreviewStorage } from './previewAuthStorage';
-import { fetchAuthWithTimeout } from '@/lib/auth-request';
+import { fetchAuthWithTimeout, fetchWithRequestTimeout, requestTimeoutFor } from '@/lib/auth-request';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -30,7 +30,7 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
     headers.set('apikey', supabaseKey);
     const url = input instanceof Request ? input.url : String(input);
     if (url.includes('/auth/v1/')) return fetchAuthWithTimeout(input, { ...init, headers });
-    return fetch(input, { ...init, headers });
+    return fetchWithRequestTimeout(input, { ...init, headers }, requestTimeoutFor(url));
   };
 }
 

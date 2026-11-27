@@ -34,3 +34,18 @@ describe('auth waiting limits', () => {
     await expect(withAuthDeadline(Promise.reject(new Error('invalid credentials')))).rejects.toThrow('invalid credentials');
   });
 });
+import { fetchWithRequestTimeout, requestTimeoutFor } from '../lib/auth-request';
+describe('app request waiting limits', () => {
+  it('gives order functions 90 seconds and reads 30 seconds', () => {
+    expect(requestTimeoutFor('https://api.x/functions/v1/place-order')).toBe(90000);
+    expect(requestTimeoutFor('https://api.x/rest/v1/orders')).toBe(30000);
+  });
+  it('releases a stalled order request with a check-your-orders message', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal('fetch', (_: unknown, init: RequestInit) => new Promise((_, reject) => init.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')))));
+    const result = fetchWithRequestTimeout('https://api.x/functions/v1/place-order', {}, 90000);
+    const assertion = expect(result).rejects.toThrow('may still be processing');
+    await vi.advanceTimersByTimeAsync(90000);
+    await assertion;
+  });
+});
